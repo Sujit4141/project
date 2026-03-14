@@ -1,7 +1,9 @@
 flask
-opencv-python-headless
+flask-cors
+gunicorn
 numpy
 pandas
-scikit-learn
+opencv-python-headless
 mediapipe
-gunicorn
+scikit-learn
+joblib
