@@ -28,12 +28,15 @@ except FileNotFoundError:
 # ----------------------------
 LANDMARK_MODEL_PATH = "face_landmarker.task"
 if not os.path.exists(LANDMARK_MODEL_PATH):
-    print("Downloading Face Landmarker model...")
-    urllib.request.urlretrieve(
-        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        LANDMARK_MODEL_PATH
-    )
-    print("Downloaded.")
+    try:
+        print("Downloading Face Landmarker model...")
+        urllib.request.urlretrieve(
+            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            LANDMARK_MODEL_PATH
+        )
+        print("Downloaded.")
+    except Exception as e:
+        raise RuntimeError(f"Failed to download face landmarker model: {e}")
 
 # ----------------------------
 # Setup options for Face Landmarker (do not create instance here)
