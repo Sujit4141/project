@@ -3,7 +3,6 @@ from flask_cors import CORS
 import joblib
 import pandas as pd
 import cv2
-import os
 import numpy as np
 import mediapipe as mp
 from mediapipe.tasks import python as mp_python
@@ -37,7 +36,7 @@ if not os.path.exists(LANDMARK_MODEL_PATH):
     print("Downloaded.")
 
 # ----------------------------
-# Setup Face Landmarker
+# Setup options for Face Landmarker (do not create instance here)
 # ----------------------------
 base_options = mp_python.BaseOptions(model_asset_path=LANDMARK_MODEL_PATH)
 landmarker_options = vision.FaceLandmarkerOptions(
@@ -49,7 +48,9 @@ landmarker_options = vision.FaceLandmarkerOptions(
     min_face_presence_confidence=0.5,
     min_tracking_confidence=0.5
 )
-face_landmarker = vision.FaceLandmarker.create_from_options(landmarker_options)
+
+# Initialize face_landmarker variable as None; will be created on first use
+face_landmarker = None
 
 # ----------------------------
 # Eye landmark indices
@@ -86,6 +87,12 @@ def compute_head_pose(transformation_matrix):
     return pitch, yaw, roll
 
 def analyze_frame(frame):
+    global face_landmarker  # use global so we can assign below
+
+    # Create face_landmarker on first use to avoid startup crash
+    if face_landmarker is None:
+        face_landmarker = vision.FaceLandmarker.create_from_options(landmarker_options)
+
     h, w, _ = frame.shape
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
@@ -206,12 +213,9 @@ def predict():
     levels = ["Normal", "Moderate", "High"]
     return jsonify({"fatigue_level": levels[int(prediction[0])]})
 
-
 @app.route("/")
 def home():
     return "Fatigue Detection API Running"
 
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(port=5000, debug=True)
